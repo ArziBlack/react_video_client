@@ -156,14 +156,17 @@ const VideoRoom = ({
       
       // Handle remote tracks
       pc.ontrack = (event) => {
-        console.log('Got remote track from', userId);
-        setPeers(prev => ({
-          ...prev,
-          [userId]: {
-            ...prev[userId],
-            stream: event.streams[0]
-          }
-        }));
+        console.log('Got remote track from', userId, event.streams[0]);
+        // Make sure we're using the first stream from the event
+        if (event.streams && event.streams[0]) {
+          setPeers(prev => ({
+            ...prev,
+            [userId]: {
+              ...prev[userId],
+              stream: event.streams[0]
+            }
+          }));
+        }
       };
       
       // Add peer to state
@@ -293,75 +296,52 @@ const VideoRoom = ({
             {/* Remote video thumbnails */}
             {Object.entries(peers).map(([userId, peerData]) => {
               const user = users.find(u => u.id === userId);
-              if (user && peerData.stream) {
+              console.log('Rendering peer:', userId, 'Stream exists:', !!peerData.stream, 'User exists:', !!user);
+              
+              if (user) {
                 return (
                   <div 
                     key={userId}
                     onClick={() => setSelectedUser(userId)}
                     className={`flex-shrink-0 w-40 ${selectedUser === userId ? 'ring-4 ring-blue-500' : ''} cursor-pointer`}
                   >
-                    <VideoPlayer
-                      stream={peerData.stream}
-                      userName={user.name}
-                    />
+                    {peerData.stream ? (
+                      <VideoPlayer
+                        stream={peerData.stream}
+                        userName={user.name}
+                      />
+                    ) : (
+                      <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+                          <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
+                            <span className="text-white font-medium">{user.name.charAt(0).toUpperCase()}</span>
+                          </div>
+                        </div>
+                        <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium">
+                          {user.name} (Connecting...)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               }
               return null;
             })}
             
-            {/* Add fake participants to match the image */}
-            {allUsers.length < 4 && (
-              <>
-                <div className="flex-shrink-0 w-40">
-                  <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
-                        <span className="text-white font-medium">GS</span>
-                      </div>
-                    </div>
-                    <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium">
-                      George Situmoran
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 w-40">
-                  <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
-                        <span className="text-white font-medium">YC</span>
-                      </div>
-                    </div>
-                    <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium">
-                      Yen Chupun
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-shrink-0 w-40">
-                  <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                      <div className="w-12 h-12 rounded-full bg-gray-600 flex items-center justify-center">
-                        <span className="text-white font-medium">AL</span>
-                      </div>
-                    </div>
-                    <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium">
-                      Andy Lawcheng
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+            {/* No placeholder participants - only real users will be shown */}
             
-            {/* More participants button */}
-            <div className="flex-shrink-0 w-40">
-              <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
-                <div className="text-center">
-                  <div className="bg-gray-200 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
-                    <span className="text-gray-600 font-medium">+12</span>
+            {/* Only show more participants button if we actually have many users */}
+            {Object.keys(peers).length > 5 && (
+              <div className="flex-shrink-0 w-40">
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="bg-gray-200 rounded-full h-12 w-12 flex items-center justify-center mx-auto">
+                      <span className="text-gray-600 font-medium">+{Object.keys(peers).length - 5}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
