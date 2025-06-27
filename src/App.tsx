@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './App.css';
 import JoinForm from './components/JoinForm';
 import VideoRoom from './components/VideoRoom';
 import { io, Socket } from 'socket.io-client';
@@ -25,7 +24,7 @@ function App() {
 
   // Initialize Socket.io connection
   useEffect(() => {
-    const newSocket = io('https://video-call-server-iqe4.onrender.com');
+    const newSocket = io('http://localhost:5000');
     setSocket(newSocket);
 
     // Clean up on unmount
@@ -58,22 +57,24 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <h1>Video Call App</h1>
-      
-      {!joined ? (
-        <JoinForm onJoin={handleJoin} />
-      ) : (
-        <VideoRoom
-          socket={socket}
-          username={username}
-          users={users}
-          setUsers={setUsers}
-          localStream={localStream}
-          peers={peers}
-          setPeers={setPeers}
-        />
-      )}
+    <div className="min-h-screen w-screen bg-gradient-to-b from-blue-500 to-stone-900 py-10 px-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8">Video Call App</h1>
+        
+        {!joined ? (
+          <JoinForm onJoin={handleJoin} />
+        ) : (
+          <VideoRoom
+            socket={socket}
+            username={username}
+            users={users}
+            setUsers={setUsers}
+            localStream={localStream}
+            peers={peers}
+            setPeers={setPeers}
+          />
+        )}
+      </div>
     </div>
   );
 }
